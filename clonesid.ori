@@ -1,0 +1,83 @@
+#!/bin/bash
+
+hostip=`ip a | grep inet | grep -v "127.0.0.1" | tr -s ' ' | cut -d ' ' -f 3 | cut -d '/' -f 1`
+targetip="[targetip]"
+hostsid=`hostname`
+targetsid="[targetsid]"
+
+s_email="root@[targetsid].nskorea.com (clone[targetsid])"
+r_email="[r_email]"
+now=`date "+%Y-%m-%d %H:%M"`
+b_time=`date "+%s"`
+
+rsync -aAXv --delete --inplace $targetip:::::/* / --exclude={"/boot","/dev","/tmp","/sys","/proc","/backup","/etc/fstab","/etc/mtab","/etc/sysconfig/network*","/mnt","/var/spool/cron/root","/etc/cron.d","/usr/local/sbin/clonep120"} 1> /boot/clonep120.log 2> /boot/clonep120.errlog
+
+
+log=`tail -n 1 /boot/clonep120.log`
+
+a_time=`date "+%s"`
+a_time=$(($a_time - $b_time))
+a_min=$(($a_time / 60))
+a_sec=$(($a_time % 60))
+
+com=`date "+%Y-%m-%d %H:%M"`
+
+
+
+function mail_ex() {
+        echo "From: <noreply@jungbo.net>" > /boot/clonep120.mail
+        echo "To: <$r_email>" >> /boot/clonep120.mail
+        echo "Subject: $targetsid clone result" >> /boot/clonep120.mail
+
+        echo -e "서버 동기화(clone)\n" >> /boot/clonep120.mail
+
+        echo -e "오리지널 서버 : $targetip($targetsid)" >> /boot/clonep120.mail
+        echo -e "클론 서버 : $hostip($hostsid)" >> /boot/clonep120.mail
+        if [[ $1 == "success" ]] ; then
+                echo -e "\n성공 여부 : OK\n" >> /boot/clonep120.mail
+        else
+                echo -e "\n성공 여부 : Failure\n" >> /boot/clonep120.mail
+        fi
+
+        echo -e "시작시간 : $now " >> /boot/clonep120.mail
+        echo "완료시간 : $com" >> /boot/clonep120.mail
+        echo "소요시간 : $a_min분 $a_sec초" >> /boot/clonep120.mail
+
+        echo -e "\n서버의 사용량은 아래와 같습니다.\n" >> /boot/clonep120.mail
+
+        echo "+----------------------------------------------+" >> /boot/clonep120.mail
+        df -h >> /boot/clonep120.mail
+        echo "+----------------------------------------------+" >> /boot/clonep120.mail
+
+        if [[ $1 == "success" ]] ; then
+                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clonep120.mail
+                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clonep120.mail
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clonep120.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clonep120.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+        else
+                echo -e "\n----- 에러 내용 -----" >> /boot/clonep120.mail
+                cat /boot/clonep120.errlog >> /boot/clonep120.mail
+
+                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clonep120.mail
+                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clonep120.mail
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clonep120.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clonep120.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+        fi
+}
+
+
+
+if [[ $log =~ "total size is" ]] ; then
+        mail_ex success
+else
+        if [[ `df -h | grep "100%"` != "" ]] ;then
+                rm -f /boot/clonep120.dummy
+                echo "여유 용량이 없어서 동기화(clone)에 실패했습니다." >> /boot/clonep120.errlog
+                mail_ex failure
+                dd if=/dev/zero of=/boot/clonep120.dummy bs=1M count=5
+        else
+                mail_ex failure
+        fi
+fi
+
+cat /boot/clonep120.errlog
