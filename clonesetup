@@ -17,6 +17,21 @@ sed -i 's/\[targetip\]/'$targetip'/g' $clone_path"/clone"$targetsid
 sed -i 's/\[targetsid\]/'$targetsid'/g' $clone_path"/clone"$targetsid
 sed -i 's/\[r_email\]/'$r_email'/g' $clone_path"/clone"$targetsid
 
+#Create Symbolic Link
 ln -sf $clone_path"/clone"$targetsid /usr/local/sbin"/clone"$targetsid
+
+#Create rsync exclude file
+echo /boot > $clone_path/clone$targetsid-exclude.txt
+echo /dev >> $clone_path/clone$targetsid-exclude.txt
+echo /tmp >> $clone_path/clone$targetsid-exclude.txt
+echo /sys >> $clone_path/clone$targetsid-exclude.txt
+echo /proc >> $clone_path/clone$targetsid-exclude.txt
+echo /backup >> $clone_path/clone$targetsid-exclude.txt
+echo /etc/fstab >> $clone_path/clone$targetsid-exclude.txt
+echo /etc/mtab >> $clone_path/clone$targetsid-exclude.txt
+echo /etc/sysconfig/network* >> $clone_path/clone$targetsid-exclude.txt
+echo /var/spool/cron/root >> $clone_path/clone$targetsid-exclude.txt
+echo /etc/cron.d >> $clone_path/clone$targetsid-exclude.txt
+echo /usr/local/sbin/clone* >> $clone_path/clone$targetsid-exclude.txt
 
 echo -e "\nDone\n"
