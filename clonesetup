@@ -1,0 +1,22 @@
+#!/bin/bash
+
+clone_path="$( cd "$( dirname "$0" )" && pwd -P )"
+
+echo -n "INPUT the Origin Server's IP : "
+read targetip
+
+echo -ne "\nINPUT the Origin Server's sid : "
+read targetsid
+
+echo -ne "\nINPUT the receive Email : "
+read r_email
+
+cp $clone_path"/clonesid.ori" $clone_path"/clone"$targetsid
+
+sed -i 's/\[targetip\]/'$targetip'/g' $clone_path"/clone"$targetsid
+sed -i 's/\[targetsid\]/'$targetsid'/g' $clone_path"/clone"$targetsid
+sed -i 's/\[r_email\]/'$r_email'/g' $clone_path"/clone"$targetsid
+
+ln -sf $clone_path"/clone"$targetsid /usr/local/sbin"/clone"$targetsid
+
+echo -e "\nDone\n"
