@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo -n "INPUT the delete sid : "
+read targetsid
+
+echo ""
+
+if [[ -d "/boot/clone$targetsid" ]] ; then
+        echo "rm -rf /boot/clone$targetsid/"
+fi
+
+if [[ -f "/usr/local/sbin/clone$targetsid" ]] ; then
+        echo "rm -f /usr/local/sbin/clone$targetsid"
+fi
+
+echo -e "\n+---------------------------+\n"
+echo -n "Delete it ? (y/n) : "
+read chk_y
+
+if [[ $chk_y == "y" ]] ; then
+        rm -rf /boot/clone$targetsid/
+        rm -f /usr/local/sbin/clone$targetsid
+        echo -e "\nDone...!\n"
+else
+        echo -e "\ncanceled\n"
+        exit 3
+fi
