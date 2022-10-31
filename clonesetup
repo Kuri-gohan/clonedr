@@ -1,6 +1,7 @@
 #!/bin/bash
 
-clone_path="$( cd "$( dirname "$0" )" && pwd -P )"
+#clone_path="$( cd "$( dirname "$0" )" && pwd -P )"
+clone_path="/boot"
 
 echo -n "INPUT the Origin Server's IP : "
 read targetip
@@ -11,27 +12,33 @@ read targetsid
 echo -ne "\nINPUT the receive Email : "
 read r_email
 
-cp $clone_path"/clonesid.ori" $clone_path"/clone"$targetsid
+mkdir $clone_path"/clone"$targetsid
+cp $clone_path"/clonesid.ori" $clone_path"/clone"$targetsid"/clone"$targetsid
 
-sed -i 's/\[targetip\]/'$targetip'/g' $clone_path"/clone"$targetsid
-sed -i 's/\[targetsid\]/'$targetsid'/g' $clone_path"/clone"$targetsid
-sed -i 's/\[r_email\]/'$r_email'/g' $clone_path"/clone"$targetsid
+sed -i 's/\[targetip\]/'$targetip'/g' $clone_path"/clone"$targetsid"/clone"$targetsid
+sed -i 's/\[targetsid\]/'$targetsid'/g' $clone_path"/clone"$targetsid"/clone"$targetsid
+sed -i 's/\[r_email\]/'$r_email'/g' $clone_path"/clone"$targetsid"/clone"$targetsid
 
 #Create Symbolic Link
-ln -sf $clone_path"/clone"$targetsid /usr/local/sbin"/clone"$targetsid
+ln -sf $clone_path"/clone"$targetsid"/clone"$targetsid /usr/local/sbin"/clone"$targetsid
 
 #Create rsync exclude file
-echo /boot > $clone_path/clone$targetsid-exclude.txt
-echo /dev >> $clone_path/clone$targetsid-exclude.txt
-echo /tmp >> $clone_path/clone$targetsid-exclude.txt
-echo /sys >> $clone_path/clone$targetsid-exclude.txt
-echo /proc >> $clone_path/clone$targetsid-exclude.txt
-echo /backup >> $clone_path/clone$targetsid-exclude.txt
-echo /etc/fstab >> $clone_path/clone$targetsid-exclude.txt
-echo /etc/mtab >> $clone_path/clone$targetsid-exclude.txt
-echo /etc/sysconfig/network* >> $clone_path/clone$targetsid-exclude.txt
-echo /var/spool/cron/root >> $clone_path/clone$targetsid-exclude.txt
-echo /etc/cron.d >> $clone_path/clone$targetsid-exclude.txt
-echo /usr/local/sbin/clone* >> $clone_path/clone$targetsid-exclude.txt
+echo "/boot" > $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/dev" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/tmp" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/sys" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/proc" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/backup" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/etc/fstab" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/etc/mtab" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/etc/sysconfig/network*" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/etc/netplan" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/var/spool/cron/root" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/etc/cron.d" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
+echo "/usr/local/sbin/clone*" >> $clone_path/clone$targetsid/clone$targetsid-exclude.txt
 
-echo -e "\nDone\n"
+if [[ -f $clone_path/clone$targetsid/clone$targetsid-exclude.txt ]] && [[ -f $clone_path"/clone"$targetsid"/clone"$targetsid ]] ; then
+        echo -e "\nDone...!\n"
+else
+        echo -e "\nFailure\n"
+fi
