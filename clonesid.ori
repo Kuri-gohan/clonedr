@@ -1,6 +1,10 @@
 #!/bin/bash
 
-hostip=`ip a | grep inet | grep -v "127.0.0.1" | tr -s ' ' | cut -d ' ' -f 3 | cut -d '/' -f 1`
+LANG=ko_KR.utf8
+export LANG
+
+path_ifconfig=`whereis ifconfig | cut -d ' ' -f 2`
+hostip=`$path_ifconfig | grep inet | grep -v 127.0.0.1 | tr -s ' ' | cut -d ' ' -f 3 | cut -d ':' -f 2`
 targetip="[targetip]"
 hostsid=`hostname`
 targetsid="[targetsid]"
@@ -10,10 +14,13 @@ r_email="[r_email]"
 now=`date "+%Y-%m-%d %H:%M"`
 b_time=`date "+%s"`
 
-rsync -aAXv --delete --inplace $targetip:::::/* / --exclude-from="clone$targetsid-exclude.txt" 1> /boot/clone$targetsid.log 2> /boot/clone$targetsid.errlog
+echo "[ $now ]" > /boot/clone$targetsid/clone$targetsid.log
+echo "[ $now ]" > /boot/clone$targetsid/clone$targetsid.errlog
+
+rsync -aAXv --delete --inplace $targetip:::::/* / --exclude-from="/boot/clone$targetsid/clone$targetsid-exclude.txt" 1>> /boot/clone$targetsid/clone$targetsid.log 2>> /boot/clone$targetsid/clone$targetsid.errlog
 
 
-log=`tail -n 1 /boot/clone$targetsid.log`
+log=`tail -n 1 /boot/clone$targetsid/clone$targetsid.log`
 
 a_time=`date "+%s"`
 a_time=$(($a_time - $b_time))
@@ -25,43 +32,43 @@ com=`date "+%Y-%m-%d %H:%M"`
 
 
 function mail_ex() {
-        echo "From: <noreply@jungbo.net>" > /boot/clone$targetsid.mail
-        echo "To: <$r_email>" >> /boot/clone$targetsid.mail
-        echo "Subject: $targetsid clone result" >> /boot/clone$targetsid.mail
+        echo "From: 정보넷 <noreply@jungbo.net>" > /boot/clone$targetsid/clone$targetsid.mail
+        echo "To: <$r_email>" >> /boot/clone$targetsid/clone$targetsid.mail
+        echo "Subject: $targetsid clone result" >> /boot/clone$targetsid/clone$targetsid.mail
 
-        echo -e "서버 동기화(clone)\n" >> /boot/clone$targetsid.mail
+        echo -e "서버 동기화(clone)\n" >> /boot/clone$targetsid/clone$targetsid.mail
 
-        echo -e "오리지널 서버 : $targetip($targetsid)" >> /boot/clone$targetsid.mail
-        echo -e "클론 서버 : $hostip($hostsid)" >> /boot/clone$targetsid.mail
+        echo -e "오리지널 서버 : $targetip($targetsid)" >> /boot/clone$targetsid/clone$targetsid.mail
+        echo -e "클론 서버 : "$hostip"("$hostsid")" >> /boot/clone$targetsid/clone$targetsid.mail
         if [[ $1 == "success" ]] ; then
-                echo -e "\n성공 여부 : OK\n" >> /boot/clone$targetsid.mail
+                echo -e "\n성공 여부 : OK\n" >> /boot/clone$targetsid/clone$targetsid.mail
         else
-                echo -e "\n성공 여부 : Failure\n" >> /boot/clone$targetsid.mail
+                echo -e "\n성공 여부 : Failure\n" >> /boot/clone$targetsid/clone$targetsid.mail
         fi
 
-        echo -e "시작시간 : $now " >> /boot/clone$targetsid.mail
-        echo "완료시간 : $com" >> /boot/clone$targetsid.mail
-        echo "소요시간 : $a_min분 $a_sec초" >> /boot/clone$targetsid.mail
+        echo -e "시작시간 : $now " >> /boot/clone$targetsid/clone$targetsid.mail
+        echo "완료시간 : $com" >> /boot/clone$targetsid/clone$targetsid.mail
+        echo "소요시간 : $a_min분 $a_sec초" >> /boot/clone$targetsid/clone$targetsid.mail
 
-        echo -e "\n서버의 사용량은 아래와 같습니다.\n" >> /boot/clone$targetsid.mail
+        echo -e "\n서버의 사용량은 아래와 같습니다.\n" >> /boot/clone$targetsid/clone$targetsid.mail
 
-        echo "+----------------------------------------------+" >> /boot/clone$targetsid.mail
-        df -h >> /boot/clone$targetsid.mail
-        echo "+----------------------------------------------+" >> /boot/clone$targetsid.mail
+        echo "+----------------------------------------------+" >> /boot/clone$targetsid/clone$targetsid.mail
+        df -h >> /boot/clone$targetsid/clone$targetsid.mail
+        echo "+----------------------------------------------+" >> /boot/clone$targetsid/clone$targetsid.mail
 
         if [[ $1 == "success" ]] ; then
-                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clone$targetsid.mail
-                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clone$targetsid.mail
-                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
-                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clone$targetsid/clone$targetsid.mail
+                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clone$targetsid/clone$targetsid.mail
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clone$targetsid/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clone$targetsid/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
         else
-                echo -e "\n----- 에러 내용 -----" >> /boot/clone$targetsid.mail
-                cat /boot/clone$targetsid.errlog >> /boot/clone$targetsid.mail
+                echo -e "\n----- 에러 내용 -----" >> /boot/clone$targetsid/clone$targetsid.mail
+                cat /boot/clone$targetsid/clone$targetsid.errlog >> /boot/clone$targetsid/clone$targetsid.mail
 
-                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clone$targetsid.mail
-                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clone$targetsid.mail
-                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
-                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                #mail -r "$s_email" -s "$targetsid clone result" $r_email < /boot/clone$targetsid/clone$targetsid.mail
+                #mail -r "$s_email" -s "$targetsid clone result" lwh0002@naver.com < /boot/clone$targetsid/clone$targetsid.mail
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt $r_email --upload-file /boot/clone$targetsid/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
+                curl --ssl-reqd smtps://smtps.ymail.net:465 --mail-from lwh0002@jungbo.net --mail-rcpt lwh0002@naver.com --upload-file /boot/clone$targetsid/clone$targetsid.mail --user 'lwh0002@jungbo.net:Dnjsgod1@#'
         fi
 }
 
@@ -72,12 +79,12 @@ if [[ $log =~ "total size is" ]] ; then
 else
         if [[ `df -h | grep "100%"` != "" ]] ;then
                 rm -f /boot/clone$targetsid.dummy
-                echo "여유 용량이 없어서 동기화(clone)에 실패했습니다." >> /boot/clone$targetsid.errlog
+                echo "여유 용량이 없어서 동기화(clone)에 실패했습니다." >> /boot/clone$targetsid/clone$targetsid.errlog
                 mail_ex failure
-                dd if=/dev/zero of=/boot/clone$targetsid.dummy bs=1M count=5
+                dd if=/dev/zero of=/boot/clone$targetsid/clone$targetsid.dummy bs=1M count=5
         else
                 mail_ex failure
         fi
 fi
 
-cat /boot/clone$targetsid.errlog
+cat /boot/clone$targetsid/clone$targetsid.errlog
